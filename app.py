@@ -134,6 +134,8 @@ elif menu == "🎯 CRM e Qualificação":
         db.init_app(app_flask)
 
         with app_flask.app_context():
+            # Cria a tabela automaticamente caso ela não exista
+            db.create_all()
             leads_db = Lead.query.all()
 
             if leads_db:
@@ -154,7 +156,7 @@ elif menu == "🎯 CRM e Qualificação":
                 st.dataframe(df_leads, use_container_width=True)
             else:
                 st.info(
-                    "O banco de dados está conectado, mas ainda não há leads salvos. Utilize a 'Captura Automática' para adicionar registros."
+                    "O banco de dados foi criado com sucesso, mas ainda está vazio. Utilize a 'Captura Automática' para adicionar leads."
                 )
 
     except Exception as e:
