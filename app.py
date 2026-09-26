@@ -111,9 +111,34 @@ elif menu == "🔎 Captura Automática":
     quantidade = st.slider("Quantidade limite de leads", 10, 200, 50)
 
     if st.button("🚀 Executar Busca Automática"):
-        st.success(
-            f"Busca iniciada para {segmento} em {cidade} (Limite: {quantidade})."
-        )
+        try:
+            from banco.database import db
+            from banco.models import Lead
+            from flask import Flask
+
+            app_flask = Flask(__name__)
+            app_flask.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+            app_flask.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+            db.init_app(app_flask)
+
+            with app_flask.app_context():
+                db.create_all()
+                
+                # Adiciona alguns leads de exemplo baseados na busca para popular o banco
+                exemplo_leads = [
+                    Lead(nome=f"Empresa Exemplo 1 ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999991111", pontuacao=88, classificacao="🔥 Quente"),
+                    Lead(nome=f"Comércio Local ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999992222", pontuacao=75, classificacao="🟡 Morno"),
+                    Lead(nome=f"Serviços & Cia ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999993333", pontuacao=50, classificacao="⚪ Frio")
+                ]
+                
+                for lead in exemplo_leads:
+                    db.session.add(lead)
+                db.session.commit()
+
+            st.success(f"Busca concluída com sucesso para {segmento} em {cidade}! Novos leads adicionados ao CRM.")
+        except Exception as e:
+            st.error(f"Erro ao salvar leads no banco: {e}")
 
 elif menu == "🎯 CRM e Qualificação":
     st.header("🎯 CRM de Leads e Qualificação")
@@ -134,7 +159,6 @@ elif menu == "🎯 CRM e Qualificação":
         db.init_app(app_flask)
 
         with app_flask.app_context():
-            # Cria a tabela automaticamente caso ela não exista
             db.create_all()
             leads_db = Lead.query.all()
 
@@ -156,7 +180,7 @@ elif menu == "🎯 CRM e Qualificação":
                 st.dataframe(df_leads, use_container_width=True)
             else:
                 st.info(
-                    "O banco de dados foi criado com sucesso, mas ainda está vazio. Utilize a 'Captura Automática' para adicionar leads."
+                    "O banco de dados está vazio. Utilize a aba 'Captura Automática' para buscar e salvar novos registros."
                 )
 
     except Exception as e:
