@@ -198,6 +198,3 @@ def ver_planos():
     </html>
     """
     return render_template_string(html, planos=PLANOS_SITE)
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
