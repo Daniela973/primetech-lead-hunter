@@ -122,12 +122,16 @@ elif menu == "🎯 CRM e Qualificação":
     )
 
     try:
+        from banco.database import db
         from banco.models import Lead
         from flask import Flask
         import pandas as pd
 
         app_flask = Flask(__name__)
         app_flask.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+        app_flask.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+        db.init_app(app_flask)
 
         with app_flask.app_context():
             leads_db = Lead.query.all()
@@ -196,4 +200,3 @@ elif menu == "💰 Planos de Venda":
                 st.write(f"**Descrição:** {dados['descricao']}")
     except Exception as e:
         st.error(f"Erro ao carregar os planos: {e}")
-
