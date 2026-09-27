@@ -53,7 +53,7 @@ st.markdown(
     </style>
     <div class="hero-container">
         <div class="prime-3d">PRIME TECH</div>
-        <div class="rotating-text">🎯 Abordagem Consultiva &nbsp;|&nbsp; 📊 Diagnóstico de Oportunidades &nbsp;|&nbsp; 🚀 Alta Conversão</div>
+        <div class="rotating-text">🎯 Abordagem Consultiva &nbsp;|&nbsp; 📊 Diagnóstico de Oportunidades &nbsp;|&nbsp; 🚀 Alta Conversão Nacional</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -73,7 +73,7 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Motor Comercial V2 Ativo: Foco em diagnóstico e personalização.")
+st.sidebar.info("Motor Comercial V2 Ativo: Foco em diagnóstico, abrangência nacional e personalização.")
 
 # --- ROTEAMENTO DAS SEÇÕES ---
 
@@ -96,7 +96,6 @@ if menu == "📊 Métricas e Funil Comercial":
             total_leads = Lead.query.count()
             total_quentes = Lead.query.filter_by(classificacao="🔥 Quente").count()
             
-            # Contagem baseada nos status de abordagem
             try:
                 nao_contatados = Lead.query.filter_by(status_abordagem="Não Contatado").count()
                 mensagens_enviadas = Lead.query.filter_by(status_abordagem="Mensagem Enviada").count()
@@ -124,7 +123,7 @@ if menu == "📊 Métricas e Funil Comercial":
 
 elif menu == "🔎 Captura & Diagnóstico de Leads":
     st.header("🔎 Captura de Empresas & Diagnóstico Automático")
-    st.write("O sistema gera o lead e já realiza um **diagnóstico preliminar** das falhas digitais prováveis.")
+    st.write("Escolha se deseja buscar em **todo o Brasil** de forma ampla ou focar em uma **região/estado específico**.")
 
     segmento = st.selectbox(
         "Segmento de Negócio",
@@ -140,21 +139,35 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
         ],
     )
     
-    cidade_polo = st.selectbox(
-        "Região / Polo Alvo:",
-        [
-            "Palmas - TO",
-            "São Paulo - SP",
-            "Rio de Janeiro - RJ",
-            "Belo Horizonte - MG",
-            "Curitiba - PR",
-            "Goiânia - GO",
-            "Salvador - BA",
-            "Brasília - DF",
-        ],
+    alcance = st.radio(
+        "Abrangência da Busca:",
+        ["🇧🇷 Todo o Brasil (Aleatório / Nacional)", "📍 Escolher uma Região / Estado Específico"]
     )
+    
+    cidade_selecionada = "Brasil (Nacional)"
+    if alcance == "📍 Escolher uma Região / Estado Específico":
+        cidade_selecionada = st.selectbox(
+            "Selecione o Estado / Polo:",
+            [
+                "Palmas - TO",
+                "São Paulo - SP",
+                "Rio de Janeiro - RJ",
+                "Belo Horizonte - MG",
+                "Curitiba - PR",
+                "Porto Alegre - RS",
+                "Brasília - DF",
+                "Salvador - BA",
+                "Goiânia - GO",
+                "Manaus - AM",
+                "Belém - PA",
+                "Fortaleza - CE",
+                "Recife - PE",
+                "Vitória - ES",
+                "Florianópolis - SC",
+            ],
+        )
 
-    quantidade = st.slider("Quantidade de leads para mapear", 10, 200, 30)
+    quantidade = st.slider("Quantidade limite de leads", 10, 500, 50)
 
     if st.button("🚀 Executar Mapeamento com Diagnóstico"):
         try:
@@ -170,6 +183,24 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
             prefixos = ["Central", "Espaço", "Studio", "Prime", "Master", "Alpha", "Nova", "Top", "Global", "Boutique"]
             sufixos = ["Express", "Premium", "Digital", "Brasil", "Soluções", "Executive", "Plus"]
             
+            polos_brasil = [
+                ("Palmas - TO", "63"),
+                ("São Paulo - SP", "11"),
+                ("Rio de Janeiro - RJ", "21"),
+                ("Belo Horizonte - MG", "31"),
+                ("Curitiba - PR", "41"),
+                ("Porto Alegre - RS", "51"),
+                ("Brasília - DF", "61"),
+                ("Salvador - BA", "71"),
+                ("Goiânia - GO", "62"),
+                ("Manaus - AM", "92"),
+                ("Belém - PA", "91"),
+                ("Fortaleza - CE", "85"),
+                ("Recife - PE", "81"),
+                ("Vitória - ES", "27"),
+                ("Florianópolis - SC", "48")
+            ]
+
             diagnosticos_possiveis = [
                 "Site sem versão adequada para celular / Lento",
                 "Ausência de botão de WhatsApp direto",
@@ -183,20 +214,28 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
                 db.create_all()
                 
                 for _ in range(quantidade):
+                    if alcance == "🇧🇷 Todo o Brasil (Aleatório / Nacional)":
+                        cidade_atual, ddd_atual = random.choice(polos_brasil)
+                    else:
+                        cidade_atual = cidade_selecionada
+                        ddd_atual = "63" # Padrão inicial
+                        for p, d in polos_brasil:
+                            if p == cidade_selecionada:
+                                ddd_atual = d
+                                break
+
                     nome_empresa = f"{random.choice(prefixos)} {segmento.split('/')[0].strip()} {random.choice(sufixos)} {random.randint(100, 999)}"
-                    ddd = "63" if "Palmas" in cidade_polo else "11"
                     
-                    wpp_num = f"{ddd}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
-                    tel_num = f"({ddd}) {random.randint(30, 59)} {random.randint(1000, 9999)}"
+                    wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
+                    tel_num = f"({ddd_atual}) {random.randint(30, 59)} {random.randint(1000, 9999)}"
                     
                     score_val = random.randint(50, 95)
                     classif = "🔥 Quente" if score_val >= 70 else "🟡 Morno"
-                    diag_escolhido = random.choice(diagnosticos_possiveis)
 
                     novo_lead = Lead(
                         nome=nome_empresa,
                         segmento=segmento,
-                        cidade=cidade_polo,
+                        cidade=cidade_atual,
                         telefone=tel_num,
                         whatsapp=wpp_num,
                         website=f"www.{nome_empresa.lower().replace(' ', '')}.com.br",
@@ -205,14 +244,12 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
                         pontuacao=score_val,
                         classificacao=classif
                     )
-                    
-                    # Salva também o diagnóstico se houver coluna, ou tratamos com segurança
                     db.session.add(novo_lead)
                     novos_adicionados += 1
                 
                 db.session.commit()
 
-            st.success(f"Mapeamento concluído! **{novos_adicionados}** empresas analisadas e diagnosticadas em {cidade_polo}.")
+            st.success(f"Mapeamento concluído! **{novos_adicionados}** empresas analisadas e diagnosticadas com sucesso.")
         except Exception as e:
             st.error(f"Erro ao gerar leads: {e}")
 
@@ -257,7 +294,6 @@ elif menu == "🎯 CRM e Oportunidades":
                 
                 st.success(f"Total no CRM: **{len(df_leads)}** empresas.")
                 
-                # Filtro interativo por status
                 status_filtro = st.selectbox("Filtrar por Status no Funil:", ["Todos", "Não Contatado", "Mensagem Enviada", "Em Negociação", "Fechado / Cliente"])
                 if status_filtro != "Todos":
                     df_leads = df_leads[df_leads["Status"] == status_filtro]
@@ -270,7 +306,7 @@ elif menu == "🎯 CRM e Oportunidades":
 
 elif menu == "💬 Abordagem Consultiva por IA":
     st.header("💬 Gerador de Abordagem Baseada em Diagnóstico")
-    st.write("Esqueça a mensagem genérica. Aqui o sistema cria uma abordagem focada em **motivo concreto e demonstração de valor**.")
+    st.write("O sistema cria uma abordagem focada em **motivo concreto e demonstração de valor**.")
 
     try:
         from banco.database import db
@@ -312,7 +348,6 @@ elif menu == "💬 Abordagem Consultiva por IA":
                     ]
                 )
 
-                # Script Consultivo Inteligente
                 script_consultivo = (
                     f"Oi, aqui é da Prime Tech! Vi o perfil da *{lead_obj.nome}* em {lead_obj.cidade} "
                     f"e notei um detalhe importante: {diagnostico_selecionado.lower()}. "
@@ -324,7 +359,6 @@ elif menu == "💬 Abordagem Consultiva por IA":
                 st.markdown("### 📝 Mensagem Consultiva Pronta:")
                 mensagem_final = st.text_area("Personalize se desejar:", value=script_consultivo, height=150)
 
-                # Atualização do Status
                 status_atual = getattr(lead_obj, 'status_abordagem', 'Não Contatado')
                 status_opcoes = ["Não Contatado", "Mensagem Enviada", "Em Negociação", "Fechado / Cliente", "Descartado"]
                 try:
