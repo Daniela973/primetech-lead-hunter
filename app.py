@@ -76,7 +76,7 @@ st.sidebar.info("Sistema conectado e operacional.")
 if menu == "📊 Métricas e Dashboard":
     st.header("📊 Painel de Métricas Gerais")
     
-    # Busca contagens reais do banco de dados se disponível
+    # Busca contagens reais e totais do banco de dados
     try:
         from banco.database import db
         from banco.models import Lead
@@ -92,9 +92,9 @@ if menu == "📊 Métricas e Dashboard":
             total_quentes = Lead.query.filter_by(classificacao="🔥 Quente").count()
             total_mornos = Lead.query.filter_by(classificacao="🟡 Morno").count()
             total_frios = Lead.query.filter_by(classificacao="⚪ Frio").count()
-            total_propostas = 5
+            total_leads = Lead.query.count()
     except:
-        total_quentes, total_mornos, total_frios, total_propostas = 31, 37, 20, 5
+        total_quentes, total_mornos, total_frios, total_leads = 0, 0, 0, 0
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -104,7 +104,7 @@ if menu == "📊 Métricas e Dashboard":
     with col3:
         st.metric("⚪ Leads Frios", total_frios)
     with col4:
-        st.metric("💰 Propostas", total_propostas)
+        st.metric("📂 Total de Leads", total_leads)
     st.markdown("---")
     st.info("Acompanhamento em tempo real das oportunidades extraídas do banco de dados.")
 
@@ -193,19 +193,20 @@ elif menu == "🎯 CRM e Qualificação":
                     lista_dados.append(
                         {
                             "ID": l.id,
-                            "Empresa": l.nome,
-                            "Segmento": l.segmento,
-                            "Cidade": l.cidade,
+                            "Empresa": getattr(l, 'nome', '-'),
+                            "Segmento": getattr(l, 'segmento', '-'),
+                            "Cidade": getattr(l, 'cidade', '-'),
                             "Telefone": getattr(l, 'telefone', '-'),
-                            "WhatsApp": l.whatsapp,
+                            "WhatsApp": getattr(l, 'whatsapp', '-'),
                             "Website": getattr(l, 'website', '-'),
                             "Endereço": getattr(l, 'endereco', '-'),
                             "Instagram": getattr(l, 'instagram', '-'),
-                            "Score": l.pontuacao,
-                            "Classificação": l.classificacao,
+                            "Score": getattr(l, 'pontuacao', 0),
+                            "Classificação": getattr(l, 'classificacao', '-'),
                         }
                     )
                 df_leads = pd.DataFrame(lista_dados)
+                st.success(f"Foram encontradas **{len(df_leads)}** linhas cadastradas no banco de dados!")
                 st.dataframe(df_leads, use_container_width=True)
             else:
                 st.info(
@@ -213,33 +214,7 @@ elif menu == "🎯 CRM e Qualificação":
                 )
 
     except Exception as e:
-        st.warning(
-            f"Aviso de contexto do banco: {e}. Exibindo modo de compatibilidade."
-        )
-        import pandas as pd
-
-        dados_exemplo = pd.DataFrame(
-            {
-                "Empresa": [
-                    "Pizzaria Bella",
-                    "Salão Glamour",
-                    "Clínica Vida",
-                ],
-                "Segmento": ["Restaurantes", "Salões", "Clínicas"],
-                "Cidade": [
-                    "Palmas - TO",
-                    "Gurupi - TO",
-                    "Paraíso - TO",
-                ],
-                "Telefone": ["(63) 3215-1122", "(63) 3312-3344", "(63) 3361-5566"],
-                "WhatsApp": ["63999991111", "63999992222", "63999993333"],
-                "Website": ["www.bella.com", "www.glamour.com", "www.vida.com"],
-                "Instagram": ["@bella", "@glamour", "@vida"],
-                "Score": [85, 72, 68],
-                "Classificação": ["🔥 Quente", "🟡 Morno", "⚪ Frio"],
-            }
-        )
-        st.dataframe(dados_exemplo, use_container_width=True)
+        st.error(f"Erro ao conectar com o banco de dados do CRM: {e}")
 
 elif menu == "💬 Mensagens e Abordagem":
     st.header("💬 Gerador de Abordagem Comercial")
