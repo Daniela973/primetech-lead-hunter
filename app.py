@@ -71,7 +71,7 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Sistema conectado e operacional (Modo Brasil).")
+st.sidebar.info("Sistema conectado e operacional (Anti-Duplicidade Ativo).")
 
 # --- ROTEAMENTO DAS SEÇÕES ---
 
@@ -125,7 +125,6 @@ elif menu == "🔎 Captura Automática":
         ],
     )
     
-    # Opção de abrangência nacional
     alcance = st.radio(
         "Abrangência da Busca:",
         ["🇧🇷 Todo o Brasil (Aleatório / Nacional)", "📍 Escolher uma Região / Estado Específico"]
@@ -164,10 +163,9 @@ elif menu == "🔎 Captura Automática":
 
             db.init_app(app_flask)
 
-            prefixos = ["Centro", "Imperial", "Master", "Prime", "Alpha", "Nova", "Studio", "Espaço", "Clin", "Top", "Global", "Mega"]
-            sufixos = ["Ltda", "Eldorado", "Executiva", "Express", "Premium", "Central", "Plus", "Sul", "Boutique", "Digital"]
+            prefixos = ["Centro", "Imperial", "Master", "Prime", "Alpha", "Nova", "Studio", "Espaço", "Clin", "Top", "Global", "Mega", "Vip", "Total"]
+            sufixos = ["Ltda", "Eldorado", "Executiva", "Express", "Premium", "Central", "Plus", "Sul", "Boutique", "Digital", "Brasil", "Soluções"]
             
-            # Lista de capitais/cidades do Brasil com seus respectivos DDDs para gerar dados coerentes
             polos_brasil = [
                 ("São Paulo - SP", "11"),
                 ("Rio de Janeiro - RJ", "21"),
@@ -186,26 +184,38 @@ elif menu == "🔎 Captura Automática":
                 ("Florianópolis - SC", "48")
             ]
 
+            novos_adicionados = 0
             with app_flask.app_context():
                 db.create_all()
                 
-                for i in range(quantidade):
+                # Loop para tentar inserir a quantidade desejada sem duplicar
+                tentativas = 0
+                while novos_adicionados < quantidade and tentativas < (quantidade * 5):
+                    tentativas += 1
+                    
                     if alcance == "🇧🇷 Todo o Brasil (Aleatório / Nacional)":
                         cidade_atual, ddd_atual = random.choice(polos_brasil)
                     else:
                         cidade_atual = cidade_selecionada
-                        # Descobre o DDD com base na string do estado selecionado
-                        ddd_atual = "11" # padrão
+                        ddd_atual = "11"
                         for p, d in polos_brasil:
                             if p == cidade_selecionada:
                                 ddd_atual = d
                                 break
 
-                    nome_empresa = f"{random.choice(prefixos)} {segmento[:-1]} {random.choice(sufixos)} {random.randint(100, 999)}"
+                    nome_empresa = f"{random.choice(prefixos)} {segmento[:-1]} {random.choice(sufixos)} {random.randint(1000, 9999)}"
                     tel_num = f"{random.randint(30, 59)}{random.randint(10, 99)}{random.randint(1000, 9999)}"
                     wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
-                    score_val = random.randint(40, 98)
                     
+                    # Trava Anti-Duplicidade: Verifica se o WhatsApp ou o Nome já existem no banco
+                    duplicado = Lead.query.filter(
+                        (Lead.whatsapp == wpp_num) | (Lead.nome == nome_empresa)
+                    ).first()
+
+                    if duplicado:
+                        continue # Se já existe, pula e tenta outro
+
+                    score_val = random.randint(40, 98)
                     if score_val >= 75:
                         classif = "🔥 Quente"
                     elif score_val >= 60:
@@ -228,10 +238,11 @@ elif menu == "🔎 Captura Automática":
                         classificacao=classif
                     )
                     db.session.add(novo_lead)
+                    novos_adicionados += 1
                 
                 db.session.commit()
 
-            st.success(f"Busca nacional concluída! Capturados com sucesso **{quantidade}** novos leads de {segmento} abrangendo o Brasil.")
+            st.success(f"Busca nacional concluída! Foram adicionados com sucesso **{novos_adicionados}** novos leads únicos de {segmento} (sem duplicatas).")
         except Exception as e:
             st.error(f"Erro ao salvar leads no banco: {e}")
 
@@ -282,9 +293,8 @@ elif menu == "🎯 CRM e Qualificação":
                         }
                     )
                 df_leads = pd.DataFrame(lista_dados)
-                st.success(f"Total de registros no banco nacional: **{len(df_leads)}** leads.")
+                st.success(f"Total de registros únicos no banco nacional: **{len(df_leads)}** leads.")
                 
-                # Botão de Exportação otimizado para o Meta Ads
                 csv_data = df_leads.to_csv(index=False).encode('utf-8')
                 st.download_button(
                     label="📥 Baixar Lista Nacional em CSV para o Meta Ads",
