@@ -71,7 +71,7 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Sistema conectado e operacional (Anti-Duplicidade Ativo).")
+st.sidebar.info("Sistema conectado e operacional (Filtro Quente Ativo).")
 
 # --- ROTEAMENTO DAS SEÇÕES ---
 
@@ -188,7 +188,6 @@ elif menu == "🔎 Captura Automática":
             with app_flask.app_context():
                 db.create_all()
                 
-                # Loop para tentar inserir a quantidade desejada sem duplicar
                 tentativas = 0
                 while novos_adicionados < quantidade and tentativas < (quantidade * 5):
                     tentativas += 1
@@ -207,13 +206,12 @@ elif menu == "🔎 Captura Automática":
                     tel_num = f"{random.randint(30, 59)}{random.randint(10, 99)}{random.randint(1000, 9999)}"
                     wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
                     
-                    # Trava Anti-Duplicidade: Verifica se o WhatsApp ou o Nome já existem no banco
                     duplicado = Lead.query.filter(
                         (Lead.whatsapp == wpp_num) | (Lead.nome == nome_empresa)
                     ).first()
 
                     if duplicado:
-                        continue # Se já existe, pula e tenta outro
+                        continue
 
                     score_val = random.randint(40, 98)
                     if score_val >= 75:
@@ -242,14 +240,14 @@ elif menu == "🔎 Captura Automática":
                 
                 db.session.commit()
 
-            st.success(f"Busca nacional concluída! Foram adicionados com sucesso **{novos_adicionados}** novos leads únicos de {segmento} (sem duplicatas).")
+            st.success(f"Busca nacional concluída! Adicionados **{novos_adicionados}** novos leads únicos de {segmento}.")
         except Exception as e:
             st.error(f"Erro ao salvar leads no banco: {e}")
 
 elif menu == "🎯 CRM e Qualificação":
     st.header("🎯 CRM de Leads e Qualificação (Nacional)")
     st.write(
-        "Gerenciamento completo, listagem e exportação de leads do Brasil inteiro armazenados no banco de dados:"
+        "Gerenciamento completo, listagem e exportação de listas segmentadas para o Meta Ads:"
     )
 
     try:
@@ -293,18 +291,37 @@ elif menu == "🎯 CRM e Qualificação":
                         }
                     )
                 df_leads = pd.DataFrame(lista_dados)
-                st.success(f"Total de registros únicos no banco nacional: **{len(df_leads)}** leads.")
                 
-                csv_data = df_leads.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📥 Baixar Lista Nacional em CSV para o Meta Ads",
-                    data=csv_data,
-                    file_name="leads_brasil_meta_ads.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
+                # Filtra apenas os quentes para a segunda listagem/botão
+                df_quentes = df_leads[df_leads["Classificação"] == "🔥 Quente"]
+                
+                st.success(f"Total geral no banco: **{len(df_leads)}** leads | 🔥 Leads Quentes disponíveis: **{len(df_quentes)}**")
+                
+                # Botões de Exportação separados
+                col_btn1, col_btn2 = st.columns(2)
+                
+                with col_btn1:
+                    csv_quentes = df_quentes.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="🔥 Baixar Só Leads Quentes (Meta Ads)",
+                        data=csv_quentes,
+                        file_name="leads_quentes_meta_ads.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
+                
+                with col_btn2:
+                    csv_todos = df_leads.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📂 Baixar Todos os Leads (Geral)",
+                        data=csv_todos,
+                        file_name="todos_leads_meta_ads.csv",
+                        mime="text/csv",
+                        use_container_width=True
+                    )
                 
                 st.markdown("---")
+                st.subheader("📋 Tabela Completa de Leads")
                 st.dataframe(df_leads, use_container_width=True)
             else:
                 st.info(
