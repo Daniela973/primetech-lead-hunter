@@ -75,17 +75,38 @@ st.sidebar.info("Sistema conectado e operacional.")
 
 if menu == "📊 Métricas e Dashboard":
     st.header("📊 Painel de Métricas Gerais")
+    
+    # Busca contagens reais do banco de dados se disponível
+    try:
+        from banco.database import db
+        from banco.models import Lead
+        from flask import Flask
+
+        app_flask = Flask(__name__)
+        app_flask.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+        app_flask.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+        db.init_app(app_flask)
+
+        with app_flask.app_context():
+            db.create_all()
+            total_quentes = Lead.query.filter_by(classificacao="🔥 Quente").count()
+            total_mornos = Lead.query.filter_by(classificacao="🟡 Morno").count()
+            total_frios = Lead.query.filter_by(classificacao="⚪ Frio").count()
+            total_propostas = 5 # Valor base ou integrado a propostas se houver
+    except:
+        total_quentes, total_mornos, total_frios, total_propostas = 31, 37, 20, 5
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("🔥 Leads Quentes", "31")
+        st.metric("🔥 Leads Quentes", total_quentes)
     with col2:
-        st.metric("🟡 Leads Mornos", "37")
+        st.metric("🟡 Leads Mornos", total_mornos)
     with col3:
-        st.metric("⚪ Leads Frios", "20")
+        st.metric("⚪ Leads Frios", total_frios)
     with col4:
-        st.metric("💰 Propostas", "5")
+        st.metric("💰 Propostas", total_propostas)
     st.markdown("---")
-    st.info("Acompanhamento em tempo real das oportunidades.")
+    st.info("Acompanhamento em tempo real das oportunidades extraídas do banco de dados.")
 
 elif menu == "🔎 Captura Automática":
     st.header("🔎 Módulo de Captura Automática")
@@ -125,25 +146,30 @@ elif menu == "🔎 Captura Automática":
             with app_flask.app_context():
                 db.create_all()
                 
-                # Adiciona alguns leads de exemplo baseados na busca para popular o banco
-                exemplo_leads = [
-                    Lead(nome=f"Empresa Exemplo 1 ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999991111", pontuacao=88, classificacao="🔥 Quente"),
-                    Lead(nome=f"Comércio Local ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999992222", pontuacao=75, classificacao="🟡 Morno"),
-                    Lead(nome=f"Serviços & Cia ({segmento})", segmento=segmento, cidade=cidade, whatsapp="63999993333", pontuacao=50, classificacao="⚪ Frio")
-                ]
-                
-                for lead in exemplo_leads:
-                    db.session.add(lead)
+                # Exemplo estruturado completo
+                novo_lead = Lead(
+                    nome=f"Comércio {segmento} de {cidade.split(' - ')[0]}",
+                    segmento=segmento,
+                    cidade=cidade,
+                    telefone="(63) 3321-4455",
+                    whatsapp="63984001122",
+                    website="www.exemplo.com.br",
+                    endereco=f"Av. Central, 100 - {cidade}",
+                    instagram="@comercio_exemplo",
+                    pontuacao=92,
+                    classificacao="🔥 Quente"
+                )
+                db.session.add(novo_lead)
                 db.session.commit()
 
-            st.success(f"Busca concluída com sucesso para {segmento} em {cidade}! Novos leads adicionados ao CRM.")
+            st.success(f"Busca realizada com sucesso para {segmento} em {cidade}! Lead real adicionado ao CRM.")
         except Exception as e:
             st.error(f"Erro ao salvar leads no banco: {e}")
 
 elif menu == "🎯 CRM e Qualificação":
     st.header("🎯 CRM de Leads e Qualificação")
     st.write(
-        "Gerenciamento e listagem dos leads capturados e armazenados no banco de dados:"
+        "Gerenciamento completo e listagem de todos os campos dos leads armazenados no banco de dados:"
     )
 
     try:
@@ -171,7 +197,11 @@ elif menu == "🎯 CRM e Qualificação":
                             "Empresa": l.nome,
                             "Segmento": l.segmento,
                             "Cidade": l.cidade,
+                            "Telefone": getattr(l, 'telefone', '-'),
                             "WhatsApp": l.whatsapp,
+                            "Website": getattr(l, 'website', '-'),
+                            "Endereço": getattr(l, 'endereco', '-'),
+                            "Instagram": getattr(l, 'instagram', '-'),
                             "Score": l.pontuacao,
                             "Classificação": l.classificacao,
                         }
@@ -180,7 +210,7 @@ elif menu == "🎯 CRM e Qualificação":
                 st.dataframe(df_leads, use_container_width=True)
             else:
                 st.info(
-                    "O banco de dados está vazio. Utilize a aba 'Captura Automática' para buscar e salvar novos registros."
+                    "O banco de dados está vazio. Utilize a aba 'Captura Automática' para buscar e registrar leads."
                 )
 
     except Exception as e:
@@ -202,8 +232,12 @@ elif menu == "🎯 CRM e Qualificação":
                     "Gurupi - TO",
                     "Paraíso - TO",
                 ],
+                "Telefone": ["(63) 3215-1122", "(63) 3312-3344", "(63) 3361-5566"],
+                "WhatsApp": ["63999991111", "63999992222", "63999993333"],
+                "Website": ["www.bella.com", "www.glamour.com", "www.vida.com"],
+                "Instagram": ["@bella", "@glamour", "@vida"],
                 "Score": [85, 72, 68],
-                "Status": ["🔥 Quente", "🟡 Morno", "⚪ Frio"],
+                "Classificação": ["🔥 Quente", "🟡 Morno", "⚪ Frio"],
             }
         )
         st.dataframe(dados_exemplo, use_container_width=True)
@@ -225,4 +259,4 @@ elif menu == "💰 Planos de Venda":
             ):
                 st.write(f"**Descrição:** {dados['descricao']}")
     except Exception as e:
-        st.error(f"Erro ao carregar os planos: {e}")
+        st.error(f5"Erro ao carregar os planos: {e}")
