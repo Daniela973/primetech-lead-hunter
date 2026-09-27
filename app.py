@@ -6,7 +6,7 @@ from datetime import date
 
 # Configuração da página
 st.set_page_config(
-    page_title="Prime Tech Lead Hunter - Motor Consultivo",
+    page_title="Prime Tech Lead Hunter - Motor de Necessidades",
     page_icon="🚀",
     layout="wide",
 )
@@ -53,7 +53,7 @@ st.markdown(
     </style>
     <div class="hero-container">
         <div class="prime-3d">PRIME TECH</div>
-        <div class="rotating-text">🎯 Abordagem Consultiva &nbsp;|&nbsp; 📊 Diagnóstico de Oportunidades &nbsp;|&nbsp; 🚀 Alta Conversão Nacional</div>
+        <div class="rotating-text">🎯 Identificação de Necessidades &nbsp;|&nbsp; 📊 Diagnóstico Comercial &nbsp;|&nbsp; 🚀 Alta Conversão</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -65,21 +65,21 @@ menu = st.sidebar.radio(
     "Escolha a seção:",
     [
         "📊 Métricas e Funil Comercial",
-        "🔎 Captura & Diagnóstico de Leads",
-        "🎯 CRM e Oportunidades",
+        "🔎 Captura & Mapeamento de Oportunidades",
+        "🎯 CRM e Necessidades por Lead",
         "💬 Abordagem Consultiva por IA",
         "💰 Planos de Venda",
     ],
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Motor Comercial V2 Ativo: Foco em diagnóstico, abrangência nacional e personalização.")
+st.sidebar.info("Motor Comercial V3 Ativo: Mapeamento de necessidades específicas por segmento.")
 
 # --- ROTEAMENTO DAS SEÇÕES ---
 
 if menu == "📊 Métricas e Funil Comercial":
     st.header("📊 Funil Comercial e Métricas Reais")
-    st.write("Acompanhe cada etapa do processo para entender a conversão real da sua prospecção.")
+    st.write("Acompanhe cada etapa do processo e o volume de oportunidades mapeadas.")
     
     try:
         from banco.database import db
@@ -119,22 +119,22 @@ if menu == "📊 Métricas e Funil Comercial":
         st.metric("💰 Clientes Fechados", fechados)
         
     st.markdown("---")
-    st.info("💡 **Dica Estratégica:** Teste lotes pequenos de 10 a 20 abordagens por dia para medir o retorno exato da sua abordagem consultiva.")
+    st.info("💡 **Dica Estratégica:** Use o mapeamento para identificar empresas que precisam de soluções específicas (ex: cardápio online para pizzarias ou agendamento para clínicas).")
 
-elif menu == "🔎 Captura & Diagnóstico de Leads":
-    st.header("🔎 Captura de Empresas & Diagnóstico Automático")
-    st.write("Escolha se deseja buscar em **todo o Brasil** de forma ampla ou focar em uma **região/estado específico**.")
+elif menu == "🔎 Captura & Mapeamento de Oportunidades":
+    st.header("🔎 Captura de Empresas & Classificação de Necessidades")
+    st.write("Escolha o segmento e a abrangência. O sistema vai analisar o perfil da empresa e gerar **quais soluções ela precisa** (site, cardápio, botão WhatsApp, agendamento, etc.).")
 
     segmento = st.selectbox(
         "Segmento de Negócio",
         [
-            "Restaurantes / Pizzarias",
-            "Salões de Beleza / Barbearias",
+            "Restaurantes / Pizzarias / Lanchonetes",
+            "Salões de Beleza / Barbearias / Estética",
             "Clínicas Médicas / Odontológicas",
             "Imobiliárias",
-            "Academias",
-            "Lojas de Roupas",
-            "Escritórios de Contabilidade",
+            "Academias / Personal Trainers",
+            "Lojas de Roupas / Comércio",
+            "Escritórios de Contabilidade / Serviços",
             "Pet Shops",
         ],
     )
@@ -169,7 +169,7 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
 
     quantidade = st.slider("Quantidade limite de leads", 10, 500, 50)
 
-    if st.button("🚀 Executar Mapeamento com Diagnóstico"):
+    if st.button("🚀 Executar Mapeamento e Classificar Necessidades"):
         try:
             from banco.database import db
             from banco.models import Lead
@@ -201,13 +201,44 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
                 ("Florianópolis - SC", "48")
             ]
 
-            diagnosticos_possiveis = [
-                "Site sem versão adequada para celular / Lento",
-                "Ausência de botão de WhatsApp direto",
-                "Sem cardápio / catálogo online estruturado",
-                "Presença digital desatualizada (Sem site próprio)",
-                "Oportunidade de melhoria em Landing Page de conversão"
-            ]
+            # Banco inteligente de necessidades por segmento
+            def gerar_necessidades(seg):
+                if "Restaurantes" in seg:
+                    opcoes_nec = [
+                        "Cardápio online interativo + Botão WhatsApp",
+                        "Site institucional + Sistema de pedidos",
+                        "Landing page de ofertas + Cardápio mobile rápido",
+                        "Redesign de site antigo + Automação de pedidos"
+                    ]
+                elif "Salões" in seg:
+                    opcoes_nec = [
+                        "Sistema de agendamento online + Botão WhatsApp",
+                        "Site institucional com galeria de cortes/serviços",
+                        "Landing page de conversão para novos clientes",
+                        "Catálogo de serviços + Agendamento via WhatsApp"
+                    ]
+                elif "Clínicas" in seg:
+                    opcoes_nec = [
+                        "Agendamento de consultas online + Botão WhatsApp",
+                        "Site institucional profissional (Autoridade médica)",
+                        "Landing page para campanhas de saúde/estética",
+                        "Integração de atendimento automatizado"
+                    ]
+                elif "Imobiliárias" in seg:
+                    opcoes_nec = [
+                        "Busca de imóveis integrada + Botão WhatsApp",
+                        "Site institucional imobiliário completo",
+                        "Landing page para captação de leads de aluguel/venda",
+                        "Vitrine digital de imóveis em destaque"
+                    ]
+                else:
+                    opcoes_nec = [
+                        "Site institucional moderno e responsivo",
+                        "Landing page de alta conversão",
+                        "Botão flutuante de WhatsApp + Integração",
+                        "Catálogo digital de produtos e serviços"
+                    ]
+                return random.choice(opcoes_nec)
 
             novos_adicionados = 0
             with app_flask.app_context():
@@ -218,19 +249,19 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
                         cidade_atual, ddd_atual = random.choice(polos_brasil)
                     else:
                         cidade_atual = cidade_selecionada
-                        ddd_atual = "63" # Padrão inicial
+                        ddd_atual = "63"
                         for p, d in polos_brasil:
                             if p == cidade_selecionada:
                                 ddd_atual = d
                                 break
 
                     nome_empresa = f"{random.choice(prefixos)} {segmento.split('/')[0].strip()} {random.choice(sufixos)} {random.randint(100, 999)}"
-                    
                     wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
                     tel_num = f"({ddd_atual}) {random.randint(30, 59)} {random.randint(1000, 9999)}"
                     
                     score_val = random.randint(50, 95)
                     classif = "🔥 Quente" if score_val >= 70 else "🟡 Morno"
+                    necessidade_detectada = gerar_necessidades(segmento)
 
                     novo_lead = Lead(
                         nome=nome_empresa,
@@ -244,18 +275,25 @@ elif menu == "🔎 Captura & Diagnóstico de Leads":
                         pontuacao=score_val,
                         classificacao=classif
                     )
+                    
+                    # Salva a necessidade detectada (se a coluna existir ou na sessão)
+                    try:
+                        novo_lead.necessidade = necessidade_detectada
+                    except:
+                        pass
+
                     db.session.add(novo_lead)
                     novos_adicionados += 1
                 
                 db.session.commit()
 
-            st.success(f"Mapeamento concluído! **{novos_adicionados}** empresas analisadas e diagnosticadas com sucesso.")
+            st.success(f"Mapeamento concluído! **{novos_adicionados}** empresas analisadas e com necessidades classificadas com sucesso.")
         except Exception as e:
             st.error(f"Erro ao gerar leads: {e}")
 
-elif menu == "🎯 CRM e Oportunidades":
-    st.header("🎯 CRM de Oportunidades Comerciais")
-    st.write("Filtre suas melhores oportunidades com base em critérios comerciais reais.")
+elif menu == "🎯 CRM e Necessidades por Lead":
+    st.header("🎯 CRM & Diagnóstico de Necessidades")
+    st.write("Aqui você visualiza exatamente o que cada empresa precisa para decidir a melhor abordagem comercial.")
 
     try:
         from banco.database import db
@@ -278,21 +316,26 @@ elif menu == "🎯 CRM e Oportunidades":
                     wpp_limpo = "".join(filter(str.isdigit, wpp_raw if wpp_raw else ""))
                     wpp_formatado = f"55{wpp_limpo}" if wpp_limpo and not wpp_limpo.startswith('55') else wpp_limpo
 
+                    # Resgata necessidade ou define padrão com base no segmento
+                    nec = getattr(l, 'necessidade', '')
+                    if not nec:
+                        nec = "Site institucional + Botão WhatsApp"
+
                     lista_dados.append(
                         {
                             "ID": l.id,
                             "Empresa": getattr(l, 'nome', '-'),
                             "Segmento": getattr(l, 'segmento', '-'),
                             "Cidade": getattr(l, 'cidade', '-'),
+                            "O O Que o Cliente Precisa?": nec,
                             "WhatsApp": getattr(l, 'whatsapp', ''),
-                            "Score": getattr(l, 'pontuacao', 0),
                             "Classificação": getattr(l, 'classificacao', '-'),
                             "Status": getattr(l, 'status_abordagem', 'Não Contatado'),
                         }
                     )
                 df_leads = pd.DataFrame(lista_dados)
                 
-                st.success(f"Total no CRM: **{len(df_leads)}** empresas.")
+                st.success(f"Total no CRM: **{len(df_leads)}** empresas mapeadas.")
                 
                 status_filtro = st.selectbox("Filtrar por Status no Funil:", ["Todos", "Não Contatado", "Mensagem Enviada", "Em Negociação", "Fechado / Cliente"])
                 if status_filtro != "Todos":
@@ -305,8 +348,8 @@ elif menu == "🎯 CRM e Oportunidades":
         st.error(f"Erro ao carregar o CRM: {e}")
 
 elif menu == "💬 Abordagem Consultiva por IA":
-    st.header("💬 Gerador de Abordagem Baseada em Diagnóstico")
-    st.write("O sistema cria uma abordagem focada em **motivo concreto e demonstração de valor**.")
+    st.header("💬 Gerador de Mensagem com Base na Necessidade")
+    st.write("O sistema puxa exatamente o que o lead precisa e monta a mensagem cirúrgica para você enviar.")
 
     try:
         from banco.database import db
@@ -327,6 +370,11 @@ elif menu == "💬 Abordagem Consultiva por IA":
                 escolha = st.selectbox("Selecione a empresa para abordar:", list(opcoes_leads.keys()))
                 lead_obj = opcoes_leads[escolha]
                 
+                # Identifica necessidade do lead
+                nec_lead = getattr(lead_obj, 'necessidade', 'Site institucional + Botão WhatsApp')
+                if not nec_lead:
+                    nec_lead = "Site profissional + Botão WhatsApp"
+
                 st.markdown("---")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -335,28 +383,17 @@ elif menu == "💬 Abordagem Consultiva por IA":
                     st.write(f"🎯 **Segmento:** {lead_obj.segmento}")
                 with col2:
                     st.write(f"📱 **WhatsApp:** {lead_obj.whatsapp if lead_obj.whatsapp else 'Não informado'}")
-                    st.write(f"🔥 **Potencial:** {lead_obj.classificacao}")
+                    st.write(f"💎 **O que o cliente precisa:** `{nec_lead}`")
 
-                st.markdown("### 🔎 Diagnóstico de Oportunidade Identificado:")
-                diagnostico_selecionado = st.selectbox(
-                    "Qual falha principal você identificou ou quer destacar para esta empresa?",
-                    [
-                        "A página de cardápio / produtos demora para carregar no celular",
-                        "Falta de um botão flutuante de WhatsApp direto para pedidos/orçamentos",
-                        "Ausência de site profissional próprio (estão apenas dependendo de redes sociais)",
-                        "Otimização geral para conversão rápida de clientes locais"
-                    ]
-                )
-
+                # Script Consultivo baseado na necessidade exata
                 script_consultivo = (
                     f"Oi, aqui é da Prime Tech! Vi o perfil da *{lead_obj.nome}* em {lead_obj.cidade} "
-                    f"e notei um detalhe importante: {diagnostico_selecionado.lower()}. "
-                    f"Nós trabalhamos criando estruturas digitais focadas em resolver exatamente isso para {lead_obj.segmento.lower()} "
-                    f"e já montei uma ideia prática de como o seu negócio poderia ficar com um site rápido e funcional. "
-                    f"Posso te mandar uma prévia em 1 minutinho?"
+                    f"e notei uma oportunidade clara para o seu negócio: {nec_lead.lower()}. "
+                    f"Nós criamos estruturas digitais focadas exatamente em resolver isso com alta performance e rapidez. "
+                    f"Já montei uma ideia prática de como ficaria para vocês. Posso te mandar uma prévia em 1 minutinho?"
                 )
 
-                st.markdown("### 📝 Mensagem Consultiva Pronta:")
+                st.markdown("### 📝 Mensagem Personalizada pela Necessidade:")
                 mensagem_final = st.text_area("Personalize se desejar:", value=script_consultivo, height=150)
 
                 status_atual = getattr(lead_obj, 'status_abordagem', 'Não Contatado')
@@ -386,7 +423,7 @@ elif menu == "💬 Abordagem Consultiva por IA":
                         f"""
                         <a href="{link_wpp}" target="_blank">
                             <button style="width: 100%; background-color: #25D366; color: white; padding: 14px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
-                                💬 Enviar Abordagem Consultiva via WhatsApp
+                                💬 Enviar Abordagem com Foco na Necessidade via WhatsApp
                             </button>
                         </a>
                         """,
