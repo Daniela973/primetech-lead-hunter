@@ -92,7 +92,7 @@ if menu == "📊 Métricas e Dashboard":
             total_quentes = Lead.query.filter_by(classificacao="🔥 Quente").count()
             total_mornos = Lead.query.filter_by(classificacao="🟡 Morno").count()
             total_frios = Lead.query.filter_by(classificacao="⚪ Frio").count()
-            total_propostas = 5 # Valor base ou integrado a propostas se houver
+            total_propostas = 5
     except:
         total_quentes, total_mornos, total_frios, total_propostas = 31, 37, 20, 5
 
@@ -146,7 +146,6 @@ elif menu == "🔎 Captura Automática":
             with app_flask.app_context():
                 db.create_all()
                 
-                # Exemplo estruturado completo
                 novo_lead = Lead(
                     nome=f"Comércio {segmento} de {cidade.split(' - ')[0]}",
                     segmento=segmento,
@@ -259,4 +258,4 @@ elif menu == "💰 Planos de Venda":
             ):
                 st.write(f"**Descrição:** {dados['descricao']}")
     except Exception as e:
-        st.error(f5"Erro ao carregar os planos: {e}")
+        st.error(f"Erro ao carregar os planos: {e}")
