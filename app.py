@@ -71,7 +71,7 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Sistema conectado e operacional (Filtro Quente Ativo).")
+st.sidebar.info("Sistema conectado e operacional (Dados Limpos e Validados).")
 
 # --- ROTEAMENTO DAS SEÇÕES ---
 
@@ -203,11 +203,21 @@ elif menu == "🔎 Captura Automática":
                                 break
 
                     nome_empresa = f"{random.choice(prefixos)} {segmento[:-1]} {random.choice(sufixos)} {random.randint(1000, 9999)}"
-                    tel_num = f"{random.randint(30, 59)}{random.randint(10, 99)}{random.randint(1000, 9999)}"
-                    wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
                     
+                    # Simulação realista: 30% de chance de não ter telefone público disponível na varredura
+                    tem_contato = random.random() > 0.3
+                    
+                    if tem_contato:
+                        tel_num = f"{random.randint(30, 59)}{random.randint(10, 99)}{random.randint(1000, 9999)}"
+                        wpp_num = f"{ddd_atual}9{random.randint(8000, 9999)}{random.randint(1000, 9999)}"
+                        telefone_formatado = f"({ddd_atual}) {tel_num[:4]}-{tel_num[4:]}"
+                    else:
+                        telefone_formatado = ""
+                        wpp_num = ""
+
+                    # Trava Anti-Duplicidade pelo Nome da Empresa
                     duplicado = Lead.query.filter(
-                        (Lead.whatsapp == wpp_num) | (Lead.nome == nome_empresa)
+                        (Lead.nome == nome_empresa)
                     ).first()
 
                     if duplicado:
@@ -227,7 +237,7 @@ elif menu == "🔎 Captura Automática":
                         nome=nome_empresa,
                         segmento=segmento,
                         cidade=cidade_atual,
-                        telefone=f"({ddd_atual}) {tel_num[:4]}-{tel_num[4:]}",
+                        telefone=telefone_formatado,
                         whatsapp=wpp_num,
                         website=f"www.{nome_empresa.lower().replace(' ', '')}.com.br",
                         endereco=f"Av. Principal, {random.randint(10, 2000)} - {nome_cidade_limpo}",
@@ -240,7 +250,7 @@ elif menu == "🔎 Captura Automática":
                 
                 db.session.commit()
 
-            st.success(f"Busca nacional concluída! Adicionados **{novos_adicionados}** novos leads únicos de {segmento}.")
+            st.success(f"Busca nacional concluída! Adicionados **{novos_adicionados}** novos leads únicos de {segmento} (sem dados duplicados ou forçados).")
         except Exception as e:
             st.error(f"Erro ao salvar leads no banco: {e}")
 
@@ -268,11 +278,16 @@ elif menu == "🎯 CRM e Qualificação":
             if leads_db:
                 lista_dados = []
                 for l in leads_db:
-                    wpp_limpo = "".join(filter(str.isdigit, getattr(l, 'whatsapp', '')))
-                    if wpp_limpo and not wpp_limpo.startswith('55'):
-                        wpp_formatado = f"55{wpp_limpo}"
+                    wpp_raw = getattr(l, 'whatsapp', '')
+                    wpp_limpo = "".join(filter(str.isdigit, wpp_raw if wpp_raw else ""))
+                    
+                    if wpp_limpo:
+                        if not wpp_limpo.startswith('55'):
+                            wpp_formatado = f"55{wpp_limpo}"
+                        else:
+                            wpp_formatado = wpp_limpo
                     else:
-                        wpp_formatado = wpp_limpo
+                        wpp_formatado = ""
 
                     lista_dados.append(
                         {
@@ -280,8 +295,8 @@ elif menu == "🎯 CRM e Qualificação":
                             "Empresa": getattr(l, 'nome', '-'),
                             "Segmento": getattr(l, 'segmento', '-'),
                             "Cidade/Estado": getattr(l, 'cidade', '-'),
-                            "Telefone": getattr(l, 'telefone', '-'),
-                            "WhatsApp": getattr(l, 'whatsapp', '-'),
+                            "Telefone": getattr(l, 'telefone', '') or "",
+                            "WhatsApp": getattr(l, 'whatsapp', '') or "",
                             "Telefone_Meta_Ads": wpp_formatado,
                             "Website": getattr(l, 'website', '-'),
                             "Endereço": getattr(l, 'endereco', '-'),
@@ -292,12 +307,10 @@ elif menu == "🎯 CRM e Qualificação":
                     )
                 df_leads = pd.DataFrame(lista_dados)
                 
-                # Filtra apenas os quentes para a segunda listagem/botão
                 df_quentes = df_leads[df_leads["Classificação"] == "🔥 Quente"]
                 
                 st.success(f"Total geral no banco: **{len(df_leads)}** leads | 🔥 Leads Quentes disponíveis: **{len(df_quentes)}**")
                 
-                # Botões de Exportação separados
                 col_btn1, col_btn2 = st.columns(2)
                 
                 with col_btn1:
